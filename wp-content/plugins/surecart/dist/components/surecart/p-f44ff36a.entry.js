@@ -1,0 +1,2 @@
+import{r as s,h as t,H as c}from"./p-cc7ce8c7.js";const o=":host{display:block}::slotted(*:not(:last-child)){margin-bottom:var(--spacing)}";const r=class{constructor(t){s(this,t)}render(){return t(c,null,t("slot",null))}};r.style=o;export{r as sc_spacing};
+//# sourceMappingURL=p-f44ff36a.entry.js.map

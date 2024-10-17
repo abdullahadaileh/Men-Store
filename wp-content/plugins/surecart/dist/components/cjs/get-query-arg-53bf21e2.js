@@ -1,0 +1,1 @@
+"use strict";const addQueryArgs=require("./add-query-args-17c551b6.js");function getQueryArg(r,e){return addQueryArgs.getQueryArgs(r)[e]}exports.getQueryArg=getQueryArg;

@@ -1,0 +1,56 @@
+name: CI
+
+# Run the deployment only when code is committed to the branch.
+on: pull_request
+
+# Cancels all previous workflow runs for pull requests that have not completed.
+concurrency:
+    # The concurrency group contains the workflow name and the branch name for pull requests
+    # or the commit hash for any other events.
+    group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.head_ref || github.sha }}
+    cancel-in-progress: true
+
+jobs:
+  lint-and-audit:
+    if: github.actor != 'dependabot[bot]'
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+      with:
+        submodules: recursive
+        token: ${{ secrets.PRIVATE_ACCESS_TOKEN }}
+        ref: ${{ github.event.pull_request.head.ref }}
+
+    - name: Use Node.js 18.15
+      uses: actions/setup-node@v2
+      with:
+        node-version: 18.15
+        cache: 'npm'
+
+    - name: Setup PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.1'
+        tools: composer, phpcs, cs2pr
+
+    - name: Set composer token
+      run: composer config github-oauth.github.com ${{ secrets.PRIVATE_ACCESS_TOKEN }}
+
+    - name: Composer Install
+      uses: ramsey/composer-install@v1
+
+    - name: NPM Dependencies
+      if: always()
+      run: npm install
+
+    - name: Run phpcs
+      run: ./vendor/bin/phpcs
+
+    - name: PHP Syntax Errors
+      if: always()
+      run: if find . -name "*.php" ! -path "./vendor/*" ! -path "./admin/bsf-core/*" -exec php -l {} \; | grep "Errors parsing"; then exit 1; fi
+
+    - name: PHP static analysis
+      if: always()
+      run: composer run phpstan
